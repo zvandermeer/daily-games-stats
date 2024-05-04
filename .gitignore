@@ -1,0 +1,4 @@
+service_account_credentials.json
+.env
+__pycache__/
+.DS_store
