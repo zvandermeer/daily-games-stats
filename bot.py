@@ -81,9 +81,9 @@ async def on_message(message):
                     sheets_connector.update_connections(guesses, order, player, puzzleDate)
 
                 case s if s.startswith("Wordle"):
-                    score = s.split(" ")[2][0]
-
-                    puzzleNumber = int(connectionsList[1].split["#"][1].replace(",",  ""))
+                    wordleList = s.split(" ")
+                    score = wordleList[2][0]
+                    puzzleNumber = int(wordleList[1].replace(",", ""))
 
                     puzzleDate = wordleStartDate + datetime.timedelta(days=(puzzleNumber-1))
 
@@ -100,9 +100,10 @@ async def on_message(message):
                     sheets_connector.update_score(sheets_connector.Game.MINI, f"=time(0,0,{score})", player, crosswordStartDate)
 
                 case s if s.startswith("#waffle"):
-                    score = s.split(" ")[1][0]
+                    waffleList = s.split(" ")
+                    score = waffleList[1][0]
 
-                    puzzleNumber = int(connectionsList[1].split["#"][1].replace(",",  ""))
+                    puzzleNumber = int(waffleList[0].split("waffle")[1])
 
                     puzzleDate = waffleStartDate + datetime.timedelta(days=(puzzleNumber-1))
 
