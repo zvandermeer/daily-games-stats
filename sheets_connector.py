@@ -13,6 +13,7 @@ class Game():
     WORDLE = 'J'
     MINI = 'M'
     WAFFLE = 'P'
+    DELUXE = 'R'
 
 def new_day(row, puzzleDate):
     values = [[puzzleDate.strftime("%m/%d/%Y"), "Olivia"], ["", "Zoey"]]
@@ -25,7 +26,6 @@ def new_day(row, puzzleDate):
     )
 
 def find_row(puzzleDate):
-    print(puzzleDate)
     SERVICE_ACCOUNT_FILE = "service_account_credentials.json"
     credentials = service_account.Credentials.from_service_account_file(
         filename=SERVICE_ACCOUNT_FILE
@@ -46,14 +46,7 @@ def find_row(puzzleDate):
 
         last_day = epoch + timedelta(days=values[-1][0] - 2)
 
-        print(last_day)
-        print(puzzleDate)
-
-        print(puzzleDate - last_day)
-
         delta = (puzzleDate - last_day).days
-
-        print(delta)
 
         if delta == 0:
             return len(values)
@@ -138,6 +131,18 @@ def update_connections(guesses, order, player, puzzleDate):
     update_raw_values(
         SPREADSHEET_ID,
         f"{SHEET_NAME}!{Game.CONNECTIONS}{row+player}:{chr(ord(Game.CONNECTIONS)+5)}{row+player}",
+        "USER_ENTERED",
+        values
+    )
+
+def update_deluxe(stars, swaps, player, puzzleDate):
+    values = [[stars, swaps]]
+
+    row = find_row(puzzleDate)
+
+    update_raw_values(
+        SPREADSHEET_ID,
+        f"{SHEET_NAME}!{Game.DELUXE}{row+player}:{chr(ord(Game.DELUXE)+1)}{row+player}",
         "USER_ENTERED",
         values
     )

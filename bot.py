@@ -15,7 +15,8 @@ client = discord.Client(intents=intents)
 
 connectionStartDate = datetime.datetime(2023, 6, 12)
 wordleStartDate = datetime.datetime(2021,6, 20)
-waffleStartDate = datetime.datetime(2022, 1, 22)
+waffleStartDate = datetime.datetime(2022, 1, 21)
+deluxeStartDate = datetime.datetime(2022, 5, 29)
 
 @client.event
 async def on_ready():
@@ -50,19 +51,10 @@ async def on_message(message):
                 case s if s.startswith("Connections"):
                     connectionsList = s.split("\n")
 
-                    print(connectionsList)
-
                     order = []
 
                     puzzleNumber = int(connectionsList[1].split("#")[1].replace(",",  ""))
-
-                    print(connectionStartDate)
-
-                    print(puzzleNumber)
-
                     puzzleDate = connectionStartDate + datetime.timedelta(days=(puzzleNumber-1))
-
-                    print(puzzleDate)
 
                     guesses = len(connectionsList) - 2
 
@@ -108,5 +100,20 @@ async def on_message(message):
                     puzzleDate = waffleStartDate + datetime.timedelta(days=(puzzleNumber-1))
 
                     sheets_connector.update_score(sheets_connector.Game.WAFFLE, score, player, puzzleDate)
+
+                case s if s.startswith("#deluxewaffle"):
+                    waffleList = s.split(" ")
+                    score = waffleList[1][0]
+
+                    if score == "X":
+                        swaps = waffleList[2].split("\n")[0].replace("(", "").replace(")", "")
+                    else:
+                        swaps = 25 - int(score)
+
+                    puzzleNumber = int(waffleList[0].split("waffle")[1])
+
+                    puzzleDate = deluxeStartDate + datetime.timedelta(days=((puzzleNumber-1)*7))
+
+                    sheets_connector.update_deluxe(score, swaps, player, puzzleDate)
 
 client.run(os.environ["DISCORD_TOKEN"])
