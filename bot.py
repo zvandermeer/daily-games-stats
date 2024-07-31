@@ -116,4 +116,34 @@ async def on_message(message):
 
                     sheets_connector.update_deluxe(score, swaps, player, puzzleDate)
 
+                case s if s.startswith("I played https://squaredle.com/"):
+                    squardleList = s.split("\n")
+
+                    now = datetime.datetime.now()
+
+                    dateData = squardleList[0].split(" ")[3].split("/")
+
+                    puzzleDate = datetime.datetime(now.year, int(dateData[0]), int(dateData[1].replace(":", "")))
+
+                    try:
+                        bonusWords = squardleList[1].split("+")[1].split(" ")[0]
+                    except IndexError:
+                        bonusWords = "0"
+
+                    try:
+                        extraScore = squardleList[2]
+                    except IndexError:
+                        extraScore = ""
+
+                    if extraScore.startswith("🔥"):
+                        extraScore = ""
+
+                    try:
+                        squardleList[0].split(" ")[2].split("/")[3][0]
+                        game = sheets_connector.Game.MINI_SQUARDLE
+                    except IndexError:
+                        game = sheets_connector.Game.BIG_SQUARDLE
+
+                    sheets_connector.update_squardle(game, bonusWords, extraScore, player, puzzleDate)
+
 client.run(os.environ["DISCORD_TOKEN"])

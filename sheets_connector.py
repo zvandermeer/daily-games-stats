@@ -14,6 +14,8 @@ class Game():
     MINI = 'M'
     WAFFLE = 'P'
     DELUXE = 'R'
+    MINI_SQUARDLE = 'U'
+    BIG_SQUARDLE = 'W'
 
 def new_day(row, puzzleDate):
     values = [[puzzleDate.strftime("%m/%d/%Y"), "Olivia"], ["", "Zoey"]]
@@ -143,6 +145,18 @@ def update_deluxe(stars, swaps, player, puzzleDate):
     update_raw_values(
         SPREADSHEET_ID,
         f"{SHEET_NAME}!{Game.DELUXE}{row+player}:{chr(ord(Game.DELUXE)+1)}{row+player}",
+        "USER_ENTERED",
+        values
+    )
+
+def update_squardle(game, bonusWords, extraData, player, puzzleDate):
+    values = [[bonusWords, extraData]]
+
+    row = find_row(puzzleDate)
+
+    update_raw_values(
+        SPREADSHEET_ID,
+        f"{SHEET_NAME}!{game}{row+player}:{chr(ord(game)+1)}{row+player}",
         "USER_ENTERED",
         values
     )
