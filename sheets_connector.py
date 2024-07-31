@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 SPREADSHEET_ID = os.environ["SPREADSHEET_ID"]
 SHEET_NAME = os.environ["SHEET_NAME"]
 
+# Starting columns for each game
 class Game():
     CONNECTIONS = 'C'
     WORDLE = 'J'
@@ -17,6 +18,7 @@ class Game():
     MINI_SQUARDLE = 'U'
     BIG_SQUARDLE = 'W'
 
+# Create a new set of rows for the new day
 def new_day(row, puzzleDate):
     values = [[puzzleDate.strftime("%m/%d/%Y"), "Olivia"], ["", "Zoey"]]
 
@@ -27,6 +29,7 @@ def new_day(row, puzzleDate):
         values
     )
 
+# Find the row to update from the given puzzle date
 def find_row(puzzleDate):
     SERVICE_ACCOUNT_FILE = "service_account_credentials.json"
     credentials = service_account.Credentials.from_service_account_file(
@@ -35,7 +38,8 @@ def find_row(puzzleDate):
 
     try:
         service = build('sheets', 'v4', credentials=credentials)
-
+        
+        # Get all existing dates in the sheet
         sheet = service.spreadsheets()
         result = (
             sheet.values()
@@ -44,15 +48,16 @@ def find_row(puzzleDate):
         )
         values = result.get("values")
 
+        # Calculate how many days after the last existing row this
+        # puzzle was played
         epoch = datetime(1900, 1, 1)
-
         last_day = epoch + timedelta(days=values[-1][0] - 2)
-
         delta = (puzzleDate - last_day).days
 
         if delta == 0:
             return len(values)
 
+        # If not the last day in the table, create a new day and return that row
         else:
             row = len(values) + (delta * 2)
             new_day(row, puzzleDate)
@@ -62,6 +67,7 @@ def find_row(puzzleDate):
         print(f"An error occurred: {error}")
         return error
 
+# Wrapper to simplify updating raw values in the spreadsheet
 def update_raw_values(spreadsheet_id, range_name, value_input_option, values):
     SERVICE_ACCOUNT_FILE = "service_account_credentials.json"
     credentials = service_account.Credentials.from_service_account_file(
@@ -69,6 +75,7 @@ def update_raw_values(spreadsheet_id, range_name, value_input_option, values):
     )
 
     try:
+        # Set values in the spreadsheet according to given parameters
         service = build('sheets', 'v4', credentials=credentials)
         body = {"values": values}
         result = (
@@ -89,15 +96,17 @@ def update_raw_values(spreadsheet_id, range_name, value_input_option, values):
         return error
     
 def update_score(game, score, player, puzzleDate):
+    # If a specific game is worked on together, this value can be changed
+    # according to the game passed
     collaborate = 'N'
 
-    # if game == Game.MINI:
-    #     collaborate = "Worked together"
-
+    # Set values to update in the spreadsheet
     values = [[score, collaborate]]
 
+    # Find the row to update
     row = find_row(puzzleDate)
 
+    # Update the values on the sheet
     update_raw_values(
         SPREADSHEET_ID,
         f"{SHEET_NAME}!{game}{row+player}:{chr(ord(game)+1)}{row+player}",
@@ -105,7 +114,9 @@ def update_score(game, score, player, puzzleDate):
         values
     )
 
+# Update scores for connections specifically
 def update_connections(guesses, order, player, puzzleDate):
+    # Determine the order each category was guessed
     try:
         yellowPos = str(order.index("yellow")+1)
     except ValueError:
@@ -126,10 +137,13 @@ def update_connections(guesses, order, player, puzzleDate):
     except ValueError:
         purplePos = "-"
 
+    # Set values to update in the spreadsheet
     values = [[guesses, yellowPos, greenPos, bluePos, purplePos, "Worked together"]]
 
+    # Find the row to update
     row = find_row(puzzleDate)
 
+    # Update the values on the sheet
     update_raw_values(
         SPREADSHEET_ID,
         f"{SHEET_NAME}!{Game.CONNECTIONS}{row+player}:{chr(ord(Game.CONNECTIONS)+5)}{row+player}",
