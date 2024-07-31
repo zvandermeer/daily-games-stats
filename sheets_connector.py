@@ -14,10 +14,8 @@ class Game():
     MINI = 'M'
     WAFFLE = 'P'
 
-def new_day(row):
-    now = datetime.now()
-
-    values = [[now.strftime("%m/%d/%Y"), "Olivia"], ["", "Zoey"]]
+def new_day(row, puzzleDate):
+    values = [[puzzleDate.strftime("%m/%d/%Y"), "Olivia"], ["", "Zoey"]]
 
     update_raw_values(
         SPREADSHEET_ID,
@@ -26,7 +24,8 @@ def new_day(row):
         values
     )
 
-def find_row():
+def find_row(puzzleDate):
+    print(puzzleDate)
     SERVICE_ACCOUNT_FILE = "service_account_credentials.json"
     credentials = service_account.Credentials.from_service_account_file(
         filename=SERVICE_ACCOUNT_FILE
@@ -43,20 +42,25 @@ def find_row():
         )
         values = result.get("values")
 
-        epoch = datetime(1900, 1, 1).date()
+        epoch = datetime(1900, 1, 1)
 
         last_day = epoch + timedelta(days=values[-1][0] - 2)
 
-        current_day = datetime.now().date()
+        print(last_day)
+        print(puzzleDate)
 
-        delta = (current_day - last_day).days
+        print(puzzleDate - last_day)
+
+        delta = (puzzleDate - last_day).days
+
+        print(delta)
 
         if delta == 0:
             return len(values)
 
         else:
             row = len(values) + (delta * 2)
-            new_day(row)
+            new_day(row, puzzleDate)
             return row
 
     except HttpError as error:
@@ -89,15 +93,15 @@ def update_raw_values(spreadsheet_id, range_name, value_input_option, values):
         print(f"An error occurred: {error}")
         return error
     
-def update_score(game, score, player):
+def update_score(game, score, player, puzzleDate):
     collaborate = 'N'
 
-    if game == Game.MINI:
-        collaborate = "Worked together"
+    # if game == Game.MINI:
+    #     collaborate = "Worked together"
 
     values = [[score, collaborate]]
 
-    row = find_row()
+    row = find_row(puzzleDate)
 
     update_raw_values(
         SPREADSHEET_ID,
@@ -106,7 +110,7 @@ def update_score(game, score, player):
         values
     )
 
-def update_connections(guesses, order, player):
+def update_connections(guesses, order, player, puzzleDate):
     try:
         yellowPos = str(order.index("yellow")+1)
     except ValueError:
@@ -129,7 +133,7 @@ def update_connections(guesses, order, player):
 
     values = [[guesses, yellowPos, greenPos, bluePos, purplePos, "Worked together"]]
 
-    row = find_row()
+    row = find_row(puzzleDate)
 
     update_raw_values(
         SPREADSHEET_ID,
