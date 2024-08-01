@@ -148,7 +148,7 @@ async def on_message(message):
                     # Process extracted score data
                     sheets_connector.update_deluxe(score, swaps, player, puzzleDate)
 
-                case s if s.startswith("I played https://squaredle.com/"):
+                case s if s.startswith("I played https://squaredle.com"):
                     squardleList = s.split("\n")
 
                     # Obtain the date of the puzzle from the message
@@ -175,10 +175,9 @@ async def on_message(message):
                         extraScore = ""
 
                     # Determine if the game is the mini squardle or the big squardle
-                    try:
-                        squardleList[0].split(" ")[2].split("/")[3][0]
+                    if squardleList[0].split(" ")[2].endswith("/xp"):
                         game = sheets_connector.Game.MINI_SQUARDLE
-                    except IndexError:
+                    else:
                         game = sheets_connector.Game.BIG_SQUARDLE
 
                     # Process extracted score data
