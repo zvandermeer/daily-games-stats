@@ -18,7 +18,14 @@ client = discord.Client(intents=intents)
 connectionStartDate = datetime.datetime(2023, 6, 12)
 wordleStartDate = datetime.datetime(2021,6, 20)
 waffleStartDate = datetime.datetime(2022, 1, 22)
-deluxeStartDate = datetime.datetime(2022, 5, 29)
+deluxeStartDate = datetime.datetime(2022, 5, 30)
+
+connectionsColourMap = {
+    "🟨🟨🟨🟨": "yellow",
+    "🟩🟩🟩🟩": "green",
+    "🟦🟦🟦🟦": "blue",
+    "🟪🟪🟪🟪": "purple"
+}
 
 # Notice the bot is online
 @client.event
@@ -60,30 +67,40 @@ async def on_message(message):
                 case s if s.startswith("Connections"):
                     connectionsList = s.split("\n")
 
-                    order = []
-
                     # Manipulate the message string to isolate the puzzle number, and get
                     # the date from there
                     puzzleNumber = int(connectionsList[1].split("#")[1].replace(",",  ""))
                     puzzleDate = connectionStartDate + datetime.timedelta(days=(puzzleNumber-1))
 
-                    # Get the total number of guesses from the length of the string
-                    guesses = len(connectionsList) - 2
+                    connectionsList = connectionsList[2:]
 
-                    # Determine order of correct guesses
-                    for i in connectionsList:
-                        match i:
-                            case "🟨🟨🟨🟨":
-                                order.append("yellow")
-                            case "🟩🟩🟩🟩":
-                                order.append("green")
-                            case "🟦🟦🟦🟦":
-                                order.append("blue")
-                            case "🟪🟪🟪🟪":
-                                order.append("purple")
+                    # Get the total number of guesses from the length of the string
+                    guesses = len(connectionsList)
+
+                    # Populate position dictionary
+                    positions = {
+                        "yellow": "-",
+                        "green": "-",
+                        "blue": "-",
+                        "purple": "-"
+                    }
+
+                    counter = 1
+
+                    # Get order of successful guesses
+                    for row in connectionsList:
+                        if row in connectionsColourMap:
+                            colour = connectionsColourMap[row]
+                            positions[colour] = str(counter)
+
+                            counter += 1
+
+                    # Create row to insert into spreadsheet
+                    scoreRow = [[guesses, positions["yellow"], positions["green"], positions["blue"], positions["purple"], "Worked together"]]
                         
                     # Process extracted score data
-                    sheets_connector.update_connections(guesses, order, player, puzzleDate)
+                    sheets_connector.update_score(sheets_connector.Game.CONNECTIONS, scoreRow, player, puzzleDate)
+
 
                 case s if s.startswith("Wordle"):
                     wordleList = s.split(" ")
@@ -96,8 +113,12 @@ async def on_message(message):
                     puzzleNumber = int(wordleList[1].replace(",", ""))
                     puzzleDate = wordleStartDate + datetime.timedelta(days=(puzzleNumber-1))
 
+                    # Create row to insert into spreadsheet
+                    scoreRow = [[score, "N"]]
+
                     # Process extracted score data
-                    sheets_connector.update_score(sheets_connector.Game.WORDLE, score, player, puzzleDate)
+                    sheets_connector.update_score(sheets_connector.Game.WORDLE, scoreRow, player, puzzleDate)
+
                     
                 case s if s.startswith("https://www.nytimes.com/badges/games/mini.html"):
                     urlData = s.split("&")
@@ -109,8 +130,12 @@ async def on_message(message):
                     dateData = urlData[0].split("=")[1].split("-")
                     crosswordStartDate = datetime.datetime(int(dateData[0]), int(dateData[1]), int(dateData[2]))
 
+                    # Create row to insert into spreadsheet
+                    scoreRow = [[f"=time(0,0,{score})", "N"]]
+
                     # Process extracted score data
-                    sheets_connector.update_score(sheets_connector.Game.MINI, f"=time(0,0,{score})", player, crosswordStartDate)
+                    sheets_connector.update_score(sheets_connector.Game.MINI, scoreRow, player, crosswordStartDate)
+
 
                 case s if s.startswith("#waffle"):
                     waffleList = s.split(" ")
@@ -123,8 +148,12 @@ async def on_message(message):
                     puzzleNumber = int(waffleList[0].split("waffle")[1])
                     puzzleDate = waffleStartDate + datetime.timedelta(days=(puzzleNumber-1))
 
+                    # Create row to insert into spreadsheet
+                    scoreRow = [[score, "N"]]
+
                     # Process extracted score data
-                    sheets_connector.update_score(sheets_connector.Game.WAFFLE, score, player, puzzleDate)
+                    sheets_connector.update_score(sheets_connector.Game.WAFFLE, scoreRow, player, puzzleDate)
+
 
                 case s if s.startswith("#deluxewaffle"):
                     waffleList = s.split(" ")
@@ -145,42 +174,50 @@ async def on_message(message):
                     puzzleNumber = int(waffleList[0].split("waffle")[1])
                     puzzleDate = deluxeStartDate + datetime.timedelta(days=((puzzleNumber-1)*7))
 
+                    # Create row to insert into spreadsheet
+                    scoreRow = [[score, swaps]]
+
                     # Process extracted score data
-                    sheets_connector.update_deluxe(score, swaps, player, puzzleDate)
+                    sheets_connector.update_score(sheets_connector.Game.DELUXE, scoreRow, player, puzzleDate)
+
 
                 case s if s.startswith("I played https://squaredle.com"):
-                    squardleList = s.split("\n")
+                    squaredleList = s.split("\n")
 
                     # Obtain the date of the puzzle from the message
                     now = datetime.datetime.now()
-                    dateData = squardleList[0].split(" ")[3].split("/")
+                    dateData = squaredleList[0].split(" ")[3].split("/")
                     puzzleDate = datetime.datetime(now.year, int(dateData[0]), int(dateData[1].replace(":", "")))
 
                     # If the player scored any bonus words, track it
                     try:
-                        bonusWords = squardleList[1].split("+")[1].split(" ")[0]
+                        bonusWords = squaredleList[1].split("+")[1].split(" ")[0]
                     except IndexError:
                         bonusWords = "0"
 
                     # If the player has any extra score message, track it
                     try:
-                        extraScore = squardleList[2]
+                        extraScore = squaredleList[2]
                     except IndexError:
                         extraScore = ""
 
-                    # In the big squardle, if an extra score message is not present, the
+                    # In the big squaredle, if an extra score message is not present, the
                     # players streak will be found on the same line. If the extra score
                     # is found to be the streak, set it to none
                     if extraScore.startswith("🔥"):
                         extraScore = ""
 
-                    # Determine if the game is the mini squardle or the big squardle
-                    if squardleList[0].split(" ")[2].endswith("/xp"):
-                        game = sheets_connector.Game.MINI_SQUARDLE
+                    # Determine if the game is the mini squaredle or the big squaredle
+                    if squaredleList[0].split(" ")[2].endswith("/xp"):
+                        game = sheets_connector.Game.MINI_SQUAREDLE
                     else:
-                        game = sheets_connector.Game.BIG_SQUARDLE
+                        game = sheets_connector.Game.BIG_SQUAREDLE
+
+                    # Create row to insert into spreadsheet
+                    scoreRow = [[bonusWords, extraScore]]
 
                     # Process extracted score data
-                    sheets_connector.update_squardle(game, bonusWords, extraScore, player, puzzleDate)
+                    sheets_connector.update_score(game, scoreRow, player, puzzleDate)
+
 
 client.run(os.environ["DISCORD_TOKEN"])

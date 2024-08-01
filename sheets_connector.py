@@ -15,8 +15,8 @@ class Game():
     MINI = 'M'
     WAFFLE = 'P'
     DELUXE = 'R'
-    MINI_SQUARDLE = 'U'
-    BIG_SQUARDLE = 'W'
+    MINI_SQUAREDLE = 'U'
+    BIG_SQUAREDLE = 'W'
 
 # Create a new set of rows for the new day
 def new_day(row, puzzleDate):
@@ -95,82 +95,17 @@ def update_raw_values(spreadsheet_id, range_name, value_input_option, values):
         print(f"An error occurred: {error}")
         return error
     
-def update_score(game, score, player, puzzleDate):
-    # If a specific game is worked on together, this value can be changed
-    # according to the game passed
-    collaborate = 'N'
-
-    # Set values to update in the spreadsheet
-    values = [[score, collaborate]]
-
+def update_score(game, rowData, player, puzzleDate):
     # Find the row to update
     row = find_row(puzzleDate)
+
+    # Find number of columns required to update
+    columns = len(rowData[0])
 
     # Update the values on the sheet
     update_raw_values(
         SPREADSHEET_ID,
-        f"{SHEET_NAME}!{game}{row+player}:{chr(ord(game)+1)}{row+player}",
+        f"{SHEET_NAME}!{game}{row+player}:{chr(ord(game)+columns)}{row+player}",
         "USER_ENTERED",
-        values
-    )
-
-# Update scores for connections specifically
-def update_connections(guesses, order, player, puzzleDate):
-    # Determine the order each category was guessed
-    try:
-        yellowPos = str(order.index("yellow")+1)
-    except ValueError:
-        yellowPos = "-"
-
-    try:
-        greenPos = str(order.index("green")+1)
-    except ValueError:
-        greenPos = "-"
-
-    try:
-        bluePos = str(order.index("blue")+1)
-    except ValueError:
-        bluePos = "-"
-
-    try:
-        purplePos = str(order.index("purple")+1)
-    except ValueError:
-        purplePos = "-"
-
-    # Set values to update in the spreadsheet
-    values = [[guesses, yellowPos, greenPos, bluePos, purplePos, "Worked together"]]
-
-    # Find the row to update
-    row = find_row(puzzleDate)
-
-    # Update the values on the sheet
-    update_raw_values(
-        SPREADSHEET_ID,
-        f"{SHEET_NAME}!{Game.CONNECTIONS}{row+player}:{chr(ord(Game.CONNECTIONS)+5)}{row+player}",
-        "USER_ENTERED",
-        values
-    )
-
-def update_deluxe(stars, swaps, player, puzzleDate):
-    values = [[stars, swaps]]
-
-    row = find_row(puzzleDate)
-
-    update_raw_values(
-        SPREADSHEET_ID,
-        f"{SHEET_NAME}!{Game.DELUXE}{row+player}:{chr(ord(Game.DELUXE)+1)}{row+player}",
-        "USER_ENTERED",
-        values
-    )
-
-def update_squardle(game, bonusWords, extraData, player, puzzleDate):
-    values = [[bonusWords, extraData]]
-
-    row = find_row(puzzleDate)
-
-    update_raw_values(
-        SPREADSHEET_ID,
-        f"{SHEET_NAME}!{game}{row+player}:{chr(ord(game)+1)}{row+player}",
-        "USER_ENTERED",
-        values
+        rowData
     )
