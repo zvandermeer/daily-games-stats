@@ -17,7 +17,7 @@ client = discord.Client(intents=intents)
 # Start dates for various games to allow for date calculation
 connectionStartDate = datetime.datetime(2023, 6, 12)
 wordleStartDate = datetime.datetime(2021,6, 20)
-waffleStartDate = datetime.datetime(2022, 1, 21)
+waffleStartDate = datetime.datetime(2022, 1, 22)
 deluxeStartDate = datetime.datetime(2022, 5, 29)
 
 # Notice the bot is online
