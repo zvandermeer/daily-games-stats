@@ -19,6 +19,7 @@ connectionStartDate = datetime.datetime(2023, 6, 12)
 wordleStartDate = datetime.datetime(2021,6, 20)
 waffleStartDate = datetime.datetime(2022, 1, 22)
 deluxeStartDate = datetime.datetime(2022, 5, 30)
+zorseStartDate = datetime.datetime(2024, 10, 8)
 
 connectionsColourMap = {
     "🟨🟨🟨🟨": "yellow",
@@ -218,6 +219,19 @@ async def on_message(message):
 
                     # Process extracted score data
                     sheets_connector.update_score(game, scoreRow, player, puzzleDate)
+
+                case s if s.startswith("Zorse"):
+                    zorseList = s.split("\n")
+
+                    puzzleNum = int(zorseList[0].split("#")[1])
+
+                    puzzleDate = zorseStartDate + datetime.timedelta(days=(puzzleNum-1))
+
+                    puzzleHint = zorseList[1]
+
+                    puzzleScore = zorseList[2]
+
+                    sheets_connector.update_zorse(player, puzzleHint, puzzleScore, puzzleDate)
 
 
 client.run(os.environ["DISCORD_TOKEN"])

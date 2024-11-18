@@ -17,6 +17,7 @@ class Game():
     DELUXE = 'R'
     MINI_SQUAREDLE = 'U'
     BIG_SQUAREDLE = 'W'
+    ZORSE = 'Z'
 
 # Create a new set of rows for the new day
 def new_day(row, puzzleDate):
@@ -108,4 +109,23 @@ def update_score(game, rowData, player, puzzleDate):
         f"{SHEET_NAME}!{game}{row+player}:{chr(ord(game)+columns)}{row+player}",
         "USER_ENTERED",
         rowData
+    )
+
+def update_zorse(player, question, score, puzzleDate):
+    row = find_row(puzzleDate)
+
+    # Update question
+    update_raw_values(
+        SPREADSHEET_ID,
+        f"{SHEET_NAME}!{Game.ZORSE}{row}:{Game.ZORSE}{row}",
+        "USER_ENTERED",
+        [[question]]
+    )
+
+    # Update score
+    update_raw_values(
+        SPREADSHEET_ID,
+        f"{SHEET_NAME}!AA:AA{row+player}",
+        "USER_ENTERED",
+        [[score]]
     )
